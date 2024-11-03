@@ -16,7 +16,7 @@ A Python application for managing and editing the installation dates of software
 ## Installation
 
 1. **Download the script**:
-   - Download the `edit_install_date.py` file from the repository.
+   - Download the `main.py` file from the repository.
 
 2. **Install required libraries** (if necessary):
    - This application uses the built-in libraries `tkinter` and `winreg`, so no additional installations are required.
