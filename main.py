@@ -49,6 +49,7 @@ def get_installed_software():
     return software_list
 
 def update_install_date(subkey_name, new_date):
+    # Check both HKEY_LOCAL_MACHINE and HKEY_CURRENT_USER for the subkey
     uninstall_keys = [
         r'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall',
         r'SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall'
@@ -62,6 +63,16 @@ def update_install_date(subkey_name, new_date):
                 return
         except FileNotFoundError:
             continue
+
+    # Also check the current user's uninstall key
+    uninstall_key_user = r'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall'
+    try:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, f"{uninstall_key_user}\\{subkey_name}", 0, winreg.KEY_SET_VALUE) as key:
+            winreg.SetValueEx(key, 'InstallDate', 0, winreg.REG_SZ, new_date)
+            messagebox.showinfo("Success", "Installation date updated successfully.")
+            return
+    except FileNotFoundError:
+        messagebox.showwarning("Error", "Failed to update installation date. Key not found.")
 
 def display_software():
     for widget in software_frame.winfo_children():
@@ -92,47 +103,4 @@ def edit_date(subkey_name, current_date):
     edit_window = tk.Toplevel(root)
     edit_window.title("Edit Install Date")
     
-    tk.Label(edit_window, text="New Install Date (YYYYMMDD):").pack()
-    date_entry = tk.Entry(edit_window)
-    date_entry.pack()
-    date_entry.insert(0, current_date if current_date else "")  # Pre-fill if exists
-    
-    tk.Button(edit_window, text="Save", command=save_date).pack()
-
-# Main application window
-root = tk.Tk()
-root.title("Edit 'InstallDate'")
-
-# Frame for the scrollbar
-frame = tk.Frame(root)
-frame.pack(pady=10)
-
-# Scrollbar
-scrollbar = tk.Scrollbar(frame)
-scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-# Canvas to hold the software list
-software_frame = tk.Frame(frame)
-software_frame.pack(side=tk.LEFT)
-
-# Link the scrollbar to the canvas
-scrollbar.config(command=software_frame.yview)
-
-# Create a canvas to hold the frame
-canvas = tk.Canvas(frame, yscrollcommand=scrollbar.set)
-canvas.pack(side=tk.LEFT)
-
-canvas.create_window((0, 0), window=software_frame, anchor='nw')
-
-# Update the scrollregion when the frame is resized
-def on_frame_configure(event):
-    canvas.configure(scrollregion=canvas.bbox("all"))
-
-software_frame.bind("<Configure>", on_frame_configure)
-
-refresh_button = tk.Button(root, text="Refresh Software List", command=display_software)
-refresh_button.pack()
-
-display_software()
-
-root.mainloop()
+    tk.Label(edit_window, text="New Install Date (YYYYMM
